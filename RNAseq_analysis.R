@@ -3,6 +3,7 @@
 
 library(limma)
 library(edgeR)
+library(Glimma)
 library(Mus.musculus)
 
 files <- c(
@@ -121,3 +122,35 @@ for (i in 2:nsamples) {
 }
 legend("topright", samplenames, text.col = col, bty = "n")
 
+# Log-cpm isn't enough to account for full normalization of data, so we'll use TMM instead
+x <- calcNormFactors(x, method = "TMM")
+x$samples$norm.factors
+
+# Creating an exploratory multi-dimensional scaling plot via plotMDS() is the recommended 
+# way to begin looking for differential gene expression between samples / conditions.
+# MDS is basically a PCA under the hood
+lcpm <- cpm(x, log = TRUE) # I think we're now incorporating normalization factors into lcpm calculation
+par(mfrow = c(1,2))
+
+col.group <- group
+levels(col.group) <- brewer.pal(nlevels(col.group), "Set1")
+col.group <- as.character(col.group)
+
+col.lane <- lane
+levels(col.lane) <- brewer.pal(nlevels(col.lane), "Set2")
+col.lane <- as.character(col.lane)
+
+plotMDS(lcpm, labels = group, col = col.group)
+title(main = "A. Sample groups")
+plotMDS(lcpm, labels = lane, col = col.lane, dim = c(3,4))
+title(main = "B. Sequencing lanes")
+
+# The Glimma package allows for interactive MDS and other kinds of plots
+# Can visit the authors' interactive plot at:
+  # http://bioinf.wehi.edu.au/folders/limmaWorkflow/glimma-plots/MDS-Plot.html
+glMDSPlot(
+  lcpm,
+  labels = paste(group, lane, sep = "_"),
+  groups = x$samples[,c(2,5)],
+  launch = FALSE
+)
