@@ -251,3 +251,25 @@ heatmap.2(
   lhei = c(2,8.5),
   dendrogram = "column"
 )
+
+# Next, can perform gene set enrichment analysis from inside of R, using CAMERA instead of GSEA
+  # CAMERA is better for smaller sample sets, uses linear modeling approach to establishing null hypothesis baseline
+
+load(url("http://bioinf.wehi.edu.au/software/MSigDB/mouse_c2_v5p1.rdata"))
+idx <- ids2indices(Mm.c2, id = rownames(v))
+
+cam.BasalvsLP <- camera(v, idx, design, contrast = contr.matrix[,1])
+head(cam.BasalvsLP,5)
+
+cam.BasalvsML <- camera(v,idx, design, contrast = contr.matrix[,2])
+head(cam.BasalvsML, 5)
+
+cam.LPvsML <- camera(v, idx, design, contrast = contr.matrix[,3])
+head(cam.LPvsML)
+
+barcodeplot(
+  efit$t[,3],
+  index = idx$LIM_MAMMARY_LUMINAL_MATURE_UP,
+  index2 = idx$LIM_MAMMARY_LUMINAL_MATURE_DN,
+  main = "LPvsML"
+)
